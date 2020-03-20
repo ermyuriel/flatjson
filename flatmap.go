@@ -16,15 +16,19 @@ func flatmap(p string, m, wm map[string]interface{}, keep bool) {
 		if v == nil {
 			continue
 		}
-		if !keep {
-			delete(wm, k)
-		}
 		switch reflect.TypeOf(v).Kind() {
 		case reflect.Map:
+			if !keep {
+				delete(wm, k)
+			}
+
 			nk := fmt.Sprintf("%v%v_", p, k)
 			flatmap(nk, v.(map[string]interface{}), wm, keep)
 
 		case reflect.Slice:
+			if !keep {
+				delete(wm, k)
+			}
 
 			s := reflect.ValueOf(v)
 			for i := 0; i < s.Len(); i++ {
