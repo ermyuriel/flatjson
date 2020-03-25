@@ -1,7 +1,10 @@
 package flatmap
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"log"
 	"reflect"
 )
 
@@ -33,11 +36,23 @@ func flatmap(p string, m, wm map[string]interface{}, keep bool) {
 			s := reflect.ValueOf(v)
 			for i := 0; i < s.Len(); i++ {
 
-				iv := reflect.ValueOf(s.Index(i)).Interface()
+				iv := reflect.ValueOf(s.Index(i))
 				nki := fmt.Sprintf("%v%v_%v", p, k, i)
 
-				if reflect.TypeOf(s.Index(i)).Kind() == reflect.Map {
-					flatmap(nki, iv.(map[string]interface{}), wm, keep)
+				if reflect.TypeOf(iv.Interface()).Kind() == reflect.Struct {
+
+					js, err := json.Marshal(s.Index(i).Interface())
+
+					if err == nil {
+						m := make(map[string]interface{})
+
+						json.NewDecoder(bytes.NewBuffer(js)).Decode(&m)
+						flatmap(nki+"_", m, wm, keep)
+
+					} else {
+						log.Panicln(err)
+					}
+
 				} else {
 					wm[nki] = fmt.Sprintf("%v", iv)
 				}
